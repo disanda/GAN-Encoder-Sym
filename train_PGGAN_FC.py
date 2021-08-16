@@ -14,7 +14,7 @@ batch_size = 12
 G_Path = './checkpoint/pggan_horse256.pth'
 
 #----------------path setting---------------
-resultPath = "./output/RC_Training_D_percp_kl_mse"
+resultPath = "./output/D2E_PGGAN_FC"
 if not os.path.exists(resultPath):
 	os.mkdir(resultPath)
 
@@ -22,7 +22,7 @@ resultPath1_1 = resultPath+"/imgs"
 if not os.path.exists(resultPath1_1):
 	os.mkdir(resultPath1_1)
 
-resultPath1_2 = resultPath+"/models"
+resultPath1_2 = resultPath+"/checkpoints"
 if not os.path.exists(resultPath1_2):
 	os.mkdir(resultPath1_2)
 
@@ -40,7 +40,7 @@ netE = E.PGGAN_Encoder(256, minibatch_std_group_size = batch_size) # out: [n,512
 # --------------training with generative image------------share weight: good result!------------step2:no share weight:
 
 loss_fn_vgg = lpips.LPIPS(net='vgg').to(device)
-optimizer = torch.optim.Adam(E.parameters(), lr=0.0015 ,betas=(0.5, 0.99), eps=1e-8)
+optimizer = torch.optim.Adam(E.parameters(), lr=0.0015 ,betas=(0, 0.99), eps=1e-8)
 loss_l2 = torch.nn.MSELoss()
 loss_kl = torch.nn.KLDivLoss() #衡量分布
 loss_l1 = torch.nn.L1Loss() #稀疏

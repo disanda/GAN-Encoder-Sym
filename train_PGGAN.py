@@ -16,7 +16,7 @@ E_Path = None
 batch_size = 4
 
 #----------------path setting---------------
-resultPath = "./output/D2E"
+resultPath = "./output/D2E_PGGAN"
 if not os.path.exists(resultPath):
 	os.mkdir(resultPath)
 
@@ -24,7 +24,7 @@ resultPath1_1 = resultPath+"/imgs"
 if not os.path.exists(resultPath1_1):
 	os.mkdir(resultPath1_1)
 
-resultPath1_2 = resultPath+"/models"
+resultPath1_2 = resultPath+"/checkpoints"
 if not os.path.exists(resultPath1_2):
 	os.mkdir(resultPath1_2)
 
@@ -65,7 +65,7 @@ if using_Dw:
 # --------------training with generative image------------share weight: good result!------------step2:no share weight:
 
 loss_fn_vgg = lpips.LPIPS(net='vgg').to(device)
-optimizer = torch.optim.Adam(netE.parameters(), lr=0.0015 ,betas=(0.5, 0.99), eps=1e-8)
+optimizer = torch.optim.Adam(netE.parameters(), lr=0.0015 ,betas=(0, 0.99), eps=1e-8)
 loss_l2 = torch.nn.MSELoss()
 loss_kl = torch.nn.KLDivLoss() #衡量分布
 loss_l1 = torch.nn.L1Loss() #稀疏
