@@ -51,7 +51,7 @@ if using_Dw:
 		if i in paraDict.keys():
 			w = paraDict[i]
 			j.copy_(w)
-	toggle_grad(netD,True)
+	toggle_grad(netE,True)
 	del netD
 
 #------------------dataSet-----------
@@ -65,7 +65,7 @@ if using_Dw:
 # --------------training with generative image------------share weight: good result!------------step2:no share weight:
 
 loss_fn_vgg = lpips.LPIPS(net='vgg').to(device)
-optimizer = torch.optim.Adam(netD2.parameters(), lr=0.0015 ,betas=(0.5, 0.99), eps=1e-8)
+optimizer = torch.optim.Adam(netE.parameters(), lr=0.0015 ,betas=(0.5, 0.99), eps=1e-8)
 loss_l2 = torch.nn.MSELoss()
 loss_kl = torch.nn.KLDivLoss() #衡量分布
 loss_l1 = torch.nn.L1Loss() #稀疏
