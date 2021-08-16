@@ -37,7 +37,7 @@ def toggle_grad(model, requires_grad):
 netG = torch.nn.DataParallel(net.Generator(depth=9,latent_size=512))# in: [-1,512]
 netG.load_state_dict(torch.load(G_Path,map_location=device)) #shadow的效果要好一些 
 
-netE = torch.nn.DataParallel(Encoder.encoder_v1(height=9, feature_size=512))
+netE = torch.nn.DataParallel(Encoder.encoder(height=9, feature_size=512))
 #netE.load_state_dict(torch.load(E_Path,map_location=device))
 
 #--------------Using D's weight
