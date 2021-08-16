@@ -107,7 +107,6 @@ class Discriminator(torch.nn.Module):
 
         # create the fromRGB layers for various inputs:
         if self.use_eql:
-            from pro_gan_pytorch.CustomLayers import _equalized_conv2d
             self.fromRGB = lambda out_channels: _equalized_conv2d(3, out_channels, (1, 1), bias=True)
         else:
             from torch.nn import Conv2d
