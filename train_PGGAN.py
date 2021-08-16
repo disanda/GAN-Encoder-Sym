@@ -90,7 +90,6 @@ for epoch in range(20):
 		if i % 100 == 0: 
 			img = (torch.cat((x[:4],x_[:4]))+1)/2
 			torchvision.utils.save_image(img, resultPath1_1+'/ep%d_%d.jpg'%(epoch,i), nrow=4)
-			print(str(epoch)+'-'+str(i)+'-'+'loss_all__:  '+str(loss_all)+'     loss_i:    '+str(loss_i.item()))
 			# with open(resultPath+'/Loss.txt', 'a+') as f:
 			# 	print(str(epoch)+'-'+str(i)+'-'+'loss_all__:  '+str(loss_all)+'     loss_i:    '+str(loss_i.item()),file=f)
 				#print(str(epoch)+'-'+str(i)+'-'+'loss_1:  '+str(loss_1.item())+'  loss_2:  '+str(loss_2.item())+'  loss_3:  '+str(loss_3.item()),file=f)
