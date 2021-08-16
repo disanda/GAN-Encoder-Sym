@@ -81,7 +81,7 @@ for epoch in range(20):
 		optimizer.zero_grad()
 		loss_1_1 = loss_fn_vgg(x, x_).mean()
 		loss_1_2 = loss_l2(x,x_)
-		loss2 = loss_l2(z,z_)
+		loss_2 = loss_l2(z,z_)
 		loss_i = loss_1_1+loss_1_2+0.01*loss_2
 		loss_i.backward()
 		optimizer.step()
@@ -90,13 +90,14 @@ for epoch in range(20):
 		if i % 100 == 0: 
 			img = (torch.cat((x[:4],x_[:4]))+1)/2
 			torchvision.utils.save_image(img, resultPath1_1+'/ep%d_%d.jpg'%(epoch,i), nrow=4)
-			with open(resultPath+'/Loss.txt', 'a+') as f:
-				print(str(epoch)+'-'+str(i)+'-'+'loss_all__:  '+str(loss_all)+'     loss_i:    '+str(loss_i.item()),file=f)
-				print(str(epoch)+'-'+str(i)+'-'+'loss_1:  '+str(loss_1.item())+'  loss_2:  '+str(loss_2.item())+'  loss_3:  '+str(loss_3.item()),file=f)
-				print(str(epoch)+'-'+str(i)+'-'+'loss_1-1:  '+str(loss_1_1.item())+'  loss_1-2:  '+str(loss_1_2.item())+'  loss_1-3:  '+str(loss_1_3.item()),file=f)
-			with open(resultPath+'/D_z.txt', 'a+') as f:
-				print(str(epoch)+'-'+str(i)+'-'+'D_z:  '+str(z_[0,0:30])+'     D_z:    '+str(z_[0,30:60]),file=f)
-				print(str(epoch)+'-'+str(i)+'-'+'D_z_mean:  '+str(z_.mean())+'     D_z_std:    '+str(z_.std()),file=f)
+			print(str(epoch)+'-'+str(i)+'-'+'loss_all__:  '+str(loss_all)+'     loss_i:    '+str(loss_i.item()))
+			# with open(resultPath+'/Loss.txt', 'a+') as f:
+			# 	print(str(epoch)+'-'+str(i)+'-'+'loss_all__:  '+str(loss_all)+'     loss_i:    '+str(loss_i.item()),file=f)
+				#print(str(epoch)+'-'+str(i)+'-'+'loss_1:  '+str(loss_1.item())+'  loss_2:  '+str(loss_2.item())+'  loss_3:  '+str(loss_3.item()),file=f)
+				#print(str(epoch)+'-'+str(i)+'-'+'loss_1-1:  '+str(loss_1_1.item())+'  loss_1-2:  '+str(loss_1_2.item())+'  loss_1-3:  '+str(loss_1_3.item()),file=f)
+			# with open(resultPath+'/D_z.txt', 'a+') as f:
+			# 	print(str(epoch)+'-'+str(i)+'-'+'D_z:  '+str(z_[0,0:30])+'     D_z:    '+str(z_[0,30:60]),file=f)
+			# 	print(str(epoch)+'-'+str(i)+'-'+'D_z_mean:  '+str(z_.mean())+'     D_z_std:    '+str(z_.std()),file=f)
 	torch.save(netE.state_dict(), resultPath1_2+'/D_model_ep%d.pth'%epoch)
 
 
