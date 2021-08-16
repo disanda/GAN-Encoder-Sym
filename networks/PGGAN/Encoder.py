@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.nn import ModuleList, AvgPool2d
-from pro_gan_pytorch.CustomLayers import DisGeneralConvBlock, DisFinalBlock
+from networks.PGGAN.CustomLayers import DisGeneralConvBlock, DisFinalBlock, _equalized_conv2d
 
 #Discriminator to Encoder, Just change the last layer
 #和原网络中D对应的Encoder, 训练时G不变， v1只改了最后一层，v2是一个规模较小的网络
@@ -32,7 +32,6 @@ class encoder(torch.nn.Module):
         self.layers = ModuleList([])  # initialize to empty list
         # create the fromRGB layers for various inputs:
         if self.use_eql:
-            from pro_gan_pytorch.CustomLayers import _equalized_conv2d
             self.fromRGB = lambda out_channels: \
                 _equalized_conv2d(3, out_channels, (1, 1), bias=True)
         else:
@@ -58,25 +57,25 @@ class encoder(torch.nn.Module):
         self.temporaryDownsampler = AvgPool2d(2)
         #new
         self.new_final = nn.Conv2d(512, 512, 4, 1, 0, bias=True)
-    def forward(self, x, height, alpha):
+    def forward(self, x, depth, alpha):
         """
         forward pass of the discriminator
         :param x: input to the network
-        :param height: current height of operation (Progressive GAN)
+        :param depth: current depth of operation (Progressive GAN)
         :param alpha: current value of alpha for fade-in
         :return: out => raw prediction values (WGAN-GP)
         """
-        assert height < self.height, "Requested output depth cannot be produced"
-        if height > 0:
-            residual = self.rgb_to_features[height - 1](self.temporaryDownsampler(x))
+        assert depth < self.depth, "Requested output depth cannot be produced"
+        if depth > 0:
+            residual = self.rgb_to_features[depth - 1](self.temporaryDownsampler(x))
 
-            straight = self.layers[height - 1](
-                self.rgb_to_features[height](x)
+            straight = self.layers[depth - 1](
+                self.rgb_to_features[depth](x)
             )
 
             y = (alpha * straight) + ((1 - alpha) * residual)
 
-            for block in reversed(self.layers[:height - 1]):
+            for block in reversed(self.layers[:depth - 1]):
                 y = block(y)
         else:
             y = self.rgb_to_features[0](x)

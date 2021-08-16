@@ -3,7 +3,7 @@ import lpips
 import torch
 import numpy as np
 import torchvision
-from networks.PGGAN_V1 import  Encoder , Networks as net
+from networks.PGGAN import  Encoder , Networks as net
 from utils.data_tools import DatasetFromFolder
 from torch.autograd import Variable
 
@@ -16,7 +16,7 @@ E_Path = None
 batch_size = 4
 
 #----------------path setting---------------
-resultPath = "./output/RC_Training_D_percp_kl_mse"
+resultPath = "./output/D2E"
 if not os.path.exists(resultPath):
 	os.mkdir(resultPath)
 
@@ -34,7 +34,7 @@ def toggle_grad(model, requires_grad):
 	for p in model.parameters():
 		p.requires_grad_(requires_grad)
 
-netG = torch.nn.DataParallel(net.Generator(depth=9,latent_size=512))# in: [-1,512], depth:0-4,1-8,2-16,3-32,4-64,5-128,6-256,7-512,8-1024
+netG = torch.nn.DataParallel(net.Generator(depth=9,latent_size=512))# in: [-1,512]
 netG.load_state_dict(torch.load(G_Path,map_location=device)) #shadow的效果要好一些 
 
 netE = torch.nn.DataParallel(Encoder.encoder_v1(height=9, feature_size=512))
@@ -42,16 +42,16 @@ netE = torch.nn.DataParallel(Encoder.encoder_v1(height=9, feature_size=512))
 
 #--------------Using D's weight
 if using_Dw:
-	netD = torch.nn.DataParallel(net.Discriminator(height=9, feature_size=512)) # in: [-1,3,1024,1024],out:[], depth:0-4,1-8,2-16,3-32,4-64,5-128,6-256,7-512,8-1024
+	netD = torch.nn.DataParallel(net.Discriminator(height=9, feature_size=512)) # in: [-1,3,1024,1024],out:[]
 	netD.load_state_dict(torch.load(D_Path,map_location=device))
-	toggle_grad(netD1,False)
-	toggle_grad(netD2,False)
+	toggle_grad(netD,False)
+	toggle_grad(netE,False)
 	paraDict = dict(netD.named_parameters()) # pre_model weight dict
-	for i,j in netD2.named_parameters():
+	for i,j in netE.named_parameters():
 		if i in paraDict.keys():
 			w = paraDict[i]
 			j.copy_(w)
-	toggle_grad(netD2,True)
+	toggle_grad(netD,True)
 	del netD
 
 #------------------dataSet-----------
@@ -65,7 +65,7 @@ if using_Dw:
 # --------------training with generative image------------share weight: good result!------------step2:no share weight:
 
 loss_fn_vgg = lpips.LPIPS(net='vgg').to(device)
-optimizer = torch.optim.Adam(netD2.parameters(), lr=0.001 ,betas=(0, 0.99), eps=1e-8)
+optimizer = torch.optim.Adam(netD2.parameters(), lr=0.0015 ,betas=(0.5, 0.99), eps=1e-8)
 loss_l2 = torch.nn.MSELoss()
 loss_kl = torch.nn.KLDivLoss() #衡量分布
 loss_l1 = torch.nn.L1Loss() #稀疏
@@ -74,21 +74,15 @@ for epoch in range(20):
 	for i in range(5001):
 		z = torch.randn(batch_size, 512).to(device)
 		with torch.no_grad():
-			x = netG(z,depth=8,alpha=1)
-		z_ = netE(x.detach(),height=8,alpha=1)
+			x = netG(z,depth=8,alpha=1) # depth:0-4,1-8,2-16,3-32,4-64,5-128,6-256,7-512,8-1024
+		z_ = netE(x.detach(),depth=8,alpha=1) 
 		z_ = z_.squeeze(2).squeeze(2)
 		x_ = netG(z_,depth=8,alpha=1)
 		optimizer.zero_grad()
 		loss_1_1 = loss_fn_vgg(x, x_).mean()
 		loss_1_2 = loss_l2(x,x_)
-		y1,y2 = torch.nn.functional.softmax(x_),torch.nn.functional.softmax(x)
-		loss_1_3 = loss_kl(torch.log(y1),y2)
-		loss_1_3 = torch.where(torch.isnan(loss_1_3), torch.full_like(loss_1_3, 0), loss_1_3)
-		loss_1_3 = torch.where(torch.isinf(loss_1_3), torch.full_like(loss_1_3, 1), loss_1_3)
-		loss_2 = loss_l2(z.mean(),z_.mean())
-		loss_3 = loss_l2(z.std(),z_.std()) 
-		loss_1 = loss_1_1+loss_1_2+loss_1_3
-		loss_i = loss_1+0.01*loss_2+0.01*loss_3
+		loss2 = loss_l2(z,z_)
+		loss_i = loss_1_1+loss_1_2+0.01*loss_2
 		loss_i.backward()
 		optimizer.step()
 		loss_all +=loss_i.item()

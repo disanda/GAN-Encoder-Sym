@@ -4,13 +4,12 @@ import torch
 import numpy as np
 from torch.nn import ModuleList, AvgPool2d
 from torch.nn.functional import interpolate
-from networks.PGGAN.CustomLayers import _equalized_conv2d, GenGeneralConvBlock, GenInitialBlock, DisGeneralConvBlock, DisFinalBlock
-
+from networks.PGGAN.CustomLayers import _equalized_conv2d, GenGeneralConvBlock, GenInitialBlock, DisGeneralConvBlock, DisFinalBlock,_equalized_conv2d
 # ========================================================================================
 # Generator Module
 
 class Generator(torch.nn.Module):
-    def __init__(self, depth=7, latent_size=512, use_eql=True):
+    def __init__(self, depth=7, latent_size=512, use_eql=True): # 7->512, 8->1024
         """
         constructor for the Generator class
         :param depth: required depth of the Network
@@ -82,7 +81,7 @@ class Generator(torch.nn.Module):
 # ========================================================================================
 
 class Discriminator(torch.nn.Module):
-    def __init__(self, height=7, feature_size=512, use_eql=True):
+    def __init__(self, height=7, feature_size=512, use_eql=True): # height= 9 -> 1024
         """
         constructor for the class
         :param height: total height of the discriminator (Must be equal to the Generator depth)
@@ -120,7 +119,7 @@ class Discriminator(torch.nn.Module):
         for i in range(self.height - 1):
             if i > 2:
                 layer = DisGeneralConvBlock(
-                    int(self.feature_size // np.power(2, i - 2)),
+                    int(self.feature_size // np.power(2, i - 2)), #
                     int(self.feature_size // np.power(2, i - 3)),
                     use_eql=self.use_eql
                 )

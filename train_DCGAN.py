@@ -22,7 +22,7 @@ from utils.utils import set_seed
 # command line
 parser = argparse.ArgumentParser(description='the training args')
 parser.add_argument('--epochs', type=int, default=10)
-parser.add_argument('--lr', type=float, default=0.0002)
+parser.add_argument('--lr', type=float, default=0.0015)
 parser.add_argument('--beta_1', type=float, default=0.5)
 parser.add_argument('--batch_size', type=int, default=30) #STL:100
 parser.add_argument('--adversarial_loss_mode', default='gan', choices=['gan', 'hinge_v1', 'hinge_v2', 'lsgan', 'wgan'])
@@ -46,7 +46,7 @@ args = parser.parse_args()
 # output_dir
 
 if args.experiment_name == None:
-    args.experiment_name = '%s-Gscale%d-Dscale%d-Zdim%d-ZoutDim%d-Hidden_Scale%d-batch_size%d'%(args.dataname,args.Gscale,args.Dscale,args.z_dim,args.z_out_dim,args.hidden_scale,args.image_size)
+    args.experiment_name = '%s-Gscale%d-Dscale%d-Zdim%d-ZoutDim%d-Hidden_Scale%d-img_size%d-batch_size%d-BN%s'%(args.dataname,args.Gscale,args.Dscale,args.z_dim,args.z_out_dim,args.hidden_scale,args.img_size,args.batch_size,args.BN)
 
 if not os.path.exists('output'):
     os.mkdir('output')

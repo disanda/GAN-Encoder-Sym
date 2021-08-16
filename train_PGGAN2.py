@@ -40,7 +40,7 @@ netE = E.PGGAN_Encoder(256, minibatch_std_group_size = batch_size) # out: [n,512
 # --------------training with generative image------------share weight: good result!------------step2:no share weight:
 
 loss_fn_vgg = lpips.LPIPS(net='vgg').to(device)
-optimizer = torch.optim.Adam(netD2.parameters(), lr=0.002 ,betas=(0, 0.99), eps=1e-8)
+optimizer = torch.optim.Adam(netD2.parameters(), lr=0.0015 ,betas=(0.5, 0.99), eps=1e-8)
 loss_l2 = torch.nn.MSELoss()
 loss_kl = torch.nn.KLDivLoss() #衡量分布
 loss_l1 = torch.nn.L1Loss() #稀疏
@@ -56,14 +56,8 @@ for epoch in range(20):
 		optimizer.zero_grad()
 		loss_1_1 = loss_fn_vgg(x, x_).mean()
 		loss_1_2 = loss_l2(x,x_)
-		y1,y2 = torch.nn.functional.softmax(x_),torch.nn.functional.softmax(x)
-		loss_1_3 = loss_kl(torch.log(y1),y2)
-		loss_1_3 = torch.where(torch.isnan(loss_1_3), torch.full_like(loss_1_3, 0), loss_1_3)
-		loss_1_3 = torch.where(torch.isinf(loss_1_3), torch.full_like(loss_1_3, 1), loss_1_3)
-		loss_2 = loss_l2(z.mean(),z_.mean())
-		loss_3 = loss_l2(z.std(),z_.std()) 
-		loss_1 = loss_1_1+loss_1_2+loss_1_3
-		loss_i = loss_1+0.01*loss_2+0.01*loss_3
+		loss2 = loss_l2(z,z_)
+		loss_i = loss_1_1+loss_1_2+0.01*loss_2
 		loss_i.backward()
 		optimizer.step()
 		loss_all +=loss_i.item()
