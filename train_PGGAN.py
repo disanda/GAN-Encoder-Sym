@@ -65,7 +65,7 @@ if using_Dw:
 # --------------training with generative image------------share weight: good result!------------step2:no share weight:
 
 loss_fn_vgg = lpips.LPIPS(net='vgg').to(device)
-optimizer = torch.optim.Adam(netE.parameters(), lr=0.0015 ,betas=(0, 0.99), eps=1e-8)
+optimizer = torch.optim.Adam(netE.parameters(), lr=0.0015 ,betas=(0.5, 0.99), eps=1e-8)
 loss_l2 = torch.nn.MSELoss()
 loss_kl = torch.nn.KLDivLoss() #衡量分布
 loss_l1 = torch.nn.L1Loss() #稀疏
@@ -97,7 +97,7 @@ for epoch in range(20):
 			# with open(resultPath+'/D_z.txt', 'a+') as f:
 			# 	print(str(epoch)+'-'+str(i)+'-'+'D_z:  '+str(z_[0,0:30])+'     D_z:    '+str(z_[0,30:60]),file=f)
 			# 	print(str(epoch)+'-'+str(i)+'-'+'D_z_mean:  '+str(z_.mean())+'     D_z_std:    '+str(z_.std()),file=f)
-	torch.save(netE.state_dict(), resultPath1_2+'/D_model_ep%d.pth'%epoch)
+	torch.save(netE.state_dict(), resultPath1_2+'/E_model_ep%d.pth'%epoch)
 
 
 
