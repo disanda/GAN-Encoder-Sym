@@ -65,7 +65,7 @@ class encoder(torch.nn.Module):
         :param alpha: current value of alpha for fade-in
         :return: out => raw prediction values (WGAN-GP)
         """
-        assert depth < self.depth, "Requested output depth cannot be produced"
+        assert depth < self.height-1, "Requested output depth cannot be produced"
         if depth > 0:
             residual = self.rgb_to_features[depth - 1](self.temporaryDownsampler(x))
 
