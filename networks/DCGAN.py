@@ -75,7 +75,7 @@ class D(nn.Module): # Discriminator with SpectrualNorm
             up_times = up_times - 1
 
         # 3:
-        layers.append(nn.Conv2d(hidden_dim, output_dim, kernel_size=4, stride=1, padding=0)) # 4*4 > 1*1
+        layers.append(nn.Conv2d(hidden_dim, output_dim, kernel_size=4, stride=1, padding=0, bias=bias_flag)) # 4*4 > 1*1
 
 
         # all:
