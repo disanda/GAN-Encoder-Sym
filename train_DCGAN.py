@@ -33,11 +33,11 @@ parser.add_argument('--experiment_name', default=None)
 parser.add_argument('--img_size',type=int, default=256) # STL:128, CelebA-HQ: 256
 parser.add_argument('--img_channels', type=int, default=3)# RGB:3 ,L:1
 parser.add_argument('--dataname', default='Celeba_HQ') #choices=['mnist','cifar10', 'STL10',  'celeba','Celeba_HQ'] and so on.
-parser.add_argument('--datapath', default='./dataset/CelebAmask-HQ/CelebA-HQ-img/') 
+parser.add_argument('--datapath', default='./dataset/CelebA-HQ-img/') 
 parser.add_argument('--data_flag', type=bool, default=False) # True: STL10, False: Celeba_HQ
 parser.add_argument('--z_dim', type=int, default=128) # input to G
 parser.add_argument('--z_out_dim', type=int, default=1) # output from D
-parser.add_argument('--Gscale', type=int, default=16) # scale：网络隐藏层维度数,默认为 image_size//8 * image_size 
+parser.add_argument('--Gscale', type=int, default=8) # scale：网络隐藏层维度数,默认为 image_size//8 * image_size 
 parser.add_argument('--Dscale', type=int, default=1) 
 parser.add_argument('--BN', type=bool, default=False) 
 parser.add_argument('--hidden_scale', type=int, default=2) 
@@ -83,7 +83,7 @@ print('data-size:    '+str(shape))
 
 G = net.G(input_dim=args.z_dim, output_dim=args.img_channels, image_size=args.img_size, Gscale=args.Gscale, hidden_scale=args.hidden_scale, BN = args.BN ).to(device)
 D = net.D(output_dim=args.z_out_dim, input_dim=args.img_channels, image_size=args.img_size, Gscale=args.Gscale, Dscale4G=args.Dscale, hidden_scale=args.hidden_scale  ).to(device)
-summary(G,(args.z_dim, args.z_out_dim, args.z_out_dim))
+summary(G,(args.z_dim, 1, 1))
 summary(D,(args.img_channels, args.img_size, args.img_size))
 x,y = net.get_parameter_number(G),net.get_parameter_number(D)
 x_GB, y_GB = net.get_para_GByte(x),net.get_para_GByte(y)
