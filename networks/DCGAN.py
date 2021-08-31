@@ -16,7 +16,7 @@ def get_para_GByte(parameter_number):
      return {'Total_GB': x, 'Trainable_BG': y}
 
 class G(nn.Module): #Generator
-    def __init__(self, input_dim=128, output_dim=3, image_size=128, Gscale=16,  hidden_scale = 2, BN = False): # output_dim = image_channels
+    def __init__(self, input_dim=128, output_dim=3, image_size=128, Gscale=16,  hidden_scale = 2, BN = False, relu = False): # output_dim = image_channels
         super().__init__()
         layers = []
         up_times = math.log(image_size,2)- 3 # 输入为4*4时,another_times=1
@@ -29,7 +29,10 @@ class G(nn.Module): #Generator
             layers.append(nn.BatchNorm2d(first_hidden_dim))
         else:
             layers.append(nn.InstanceNorm2d(first_hidden_dim, affine=False, eps=1e-8))
-        layers.append(nn.ReLU())
+        if relu == False:
+            layers.append(nn.LeakyReLU(0.2, inplace=True))
+        else:
+            layers.append(nn.ReLU())
 
         # 2: upsamplings, (1x1) -> 4x4 -> 8x8 -> 16x16 -> 32*32 -> 64 -> 128 -> 256
         hidden_dim = first_hidden_dim
@@ -39,7 +42,11 @@ class G(nn.Module): #Generator
                 layers.append(nn.BatchNorm2d(int(hidden_dim/hidden_scale)))
             else:
                 layers.append(nn.InstanceNorm2d(int(hidden_dim/hidden_scale), affine=False, eps=1e-8))
-            layers.append(nn.ReLU())
+            if relu == False:
+                layers.append(nn.LeakyReLU(0.2, inplace=True))
+            else:
+                layers.append(nn.ReLU())
+
             up_times = up_times - 1
             hidden_dim = hidden_dim // 2
 

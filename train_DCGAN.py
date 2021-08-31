@@ -21,8 +21,8 @@ from utils.utils import set_seed
 
 # command line
 parser = argparse.ArgumentParser(description='the training args')
-parser.add_argument('--epochs', type=int, default=10)
-parser.add_argument('--lr', type=float, default=0.0015)
+parser.add_argument('--epochs', type=int, default=100)
+parser.add_argument('--lr', type=float, default=0.0015) # 0.0015 or 0.0002
 parser.add_argument('--beta_1', type=float, default=0.5)
 parser.add_argument('--batch_size', type=int, default=30) #STL:100
 parser.add_argument('--adversarial_loss_mode', default='gan', choices=['gan', 'hinge_v1', 'hinge_v2', 'lsgan', 'wgan'])
@@ -43,8 +43,10 @@ parser.add_argument('--BN', type=bool, default=False)
 parser.add_argument('--hidden_scale', type=int, default=2) 
 args = parser.parse_args()
 
-# output_dir
+#Fashion_mnist:  img_size=32, z_dim=32, Gscale=8
 
+
+# output_dir
 if args.experiment_name == None:
     args.experiment_name = '%s-Gscale%d-Dscale%d-Zdim%d-ZoutDim%d-Hidden_Scale%d-img_size%d-batch_size%d-BN%s'%(args.dataname,args.Gscale,args.Dscale,args.z_dim,args.z_out_dim,args.hidden_scale,args.img_size,args.batch_size,args.BN)
 
@@ -111,8 +113,6 @@ def sample(z):
     G.eval()
     return G(z)
 
-mse_loss = torch.nn.MSELoss()
-
 # ==============================================================================
 # =                                    Train                                     =
 # ==============================================================================
@@ -126,6 +126,7 @@ if __name__ == '__main__':
 
     G.train()
     D.train()
+    L2_Loss = torch.nn.MSELoss()
     for ep in tqdm.trange(args.epochs, desc='Epoch Loop'):
         it_d, it_g = 0, 0
         for x_real in tqdm.tqdm(data_loader, desc='Inner Epoch Loop'):
@@ -145,15 +146,19 @@ if __name__ == '__main__':
 
             x_real_d_loss, x_fake_d_loss = d_loss_fn(x_real_d_logit, x_fake_d_logit)
 
+            #D_loss2 = L2_Loss(x_real_d_logit.std(),x_fake_d_logit.std())
+            D_loss2 = torch.tensor(0.0)
+
             gp = torch.tensor(0.0)
             #gp = g_penal.gradient_penalty(functools.partial(D), x_real, x_fake.detach(), gp_mode=args.gradient_penalty_mode, sample_mode=args.gradient_penalty_sample_mode)
-            D_loss = (x_real_d_loss + x_fake_d_loss) + gp * args.gradient_penalty_weight
+            D_loss = (x_real_d_loss + x_fake_d_loss) + gp * args.gradient_penalty_weight + D_loss2
 
             D_optimizer.zero_grad()
             D_loss.backward(retain_graph=True)
             D_optimizer.step()
 
-            D_loss_dict={'d_loss': x_real_d_loss.item() + x_fake_d_loss.item(), 'gp': gp.item()}
+            D_loss_dict={'d_loss': x_real_d_loss.item() + x_fake_d_loss.item(), 'gp': gp.item(), //
+            'd_loss_real': x_real_d_loss.item(), 'd_loss_fake': x_fake_d_loss.item(),  'd_loss_2': D_loss2.item(),}
 
             it_d += 1
             for k, v in D_loss_dict.items():
@@ -161,13 +166,17 @@ if __name__ == '__main__':
 
 #-----------training G-----------
             x_fake_d_logit_2 = D(x_fake)
-            G_loss = g_loss_fn(x_fake_d_logit_2) #渐进式loss
+
+            #G_loss2 =  L2_Loss(x_fake.std(),x_real.std())
+            G_loss2 = torch.tensor(0.0)
+
+            G_loss = g_loss_fn(x_fake_d_logit_2) + G_loss2#渐进式loss
             G_optimizer.zero_grad()
             G_loss.backward()
             G_optimizer.step()
 
             it_g += 1
-            G_loss_dict = {'g_loss': G_loss.item()}
+            G_loss_dict = {'g_loss_fake': G_loss.item(), 'G_loss2': G_loss2.item() }
             for k, v in G_loss_dict.items():
                 writer.add_scalar('G/%s' % k, v, global_step=it_g+ep*len(data_loader))
 
