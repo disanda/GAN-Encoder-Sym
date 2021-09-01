@@ -40,7 +40,9 @@ parser.add_argument('--z_out_dim', type=int, default=1) # output from D
 parser.add_argument('--Gscale', type=int, default=8) # scale：网络隐藏层维度数,默认为 image_size//8 * image_size 
 parser.add_argument('--Dscale', type=int, default=1) 
 parser.add_argument('--BN', type=bool, default=False) 
-parser.add_argument('--hidden_scale', type=int, default=2) 
+parser.add_argument('--hidden_scale', type=int, default=2)
+parser.add_argument('--GDstd', type=bool, default=False) # GD的训练损失加std()约束
+parser.add_argument('--Grelu', type=bool, default=False) # 默认是Leaky-Relu
 args = parser.parse_args()
 
 #Fashion_mnist:  img_size=32, z_dim=32, Gscale=8
@@ -83,7 +85,7 @@ print('data-size:    '+str(shape))
 # =                                   model                                    =
 # ==============================================================================
 
-G = net.G(input_dim=args.z_dim, output_dim=args.img_channels, image_size=args.img_size, Gscale=args.Gscale, hidden_scale=args.hidden_scale, BN = args.BN ).to(device)
+G = net.G(input_dim=args.z_dim, output_dim=args.img_channels, image_size=args.img_size, Gscale=args.Gscale, hidden_scale=args.hidden_scale, BN = args.BN, relu = args.Grelu ).to(device)
 D = net.D(output_dim=args.z_out_dim, input_dim=args.img_channels, image_size=args.img_size, Gscale=args.Gscale, Dscale4G=args.Dscale, hidden_scale=args.hidden_scale  ).to(device)
 summary(G,(args.z_dim, 1, 1))
 summary(D,(args.img_channels, args.img_size, args.img_size))
@@ -140,14 +142,17 @@ if __name__ == '__main__':
             seed_flag = seed_flag + 1
 
 #--------training D-----------
-            x_fake = G(z) #G(z)[8]
+            x_fake = G(z)*0.5+0.5 #G(z)[8]
             x_real_d_logit = D(x_real) # D(x_real)[0]
             x_fake_d_logit = D(x_fake.detach())
 
             x_real_d_loss, x_fake_d_loss = d_loss_fn(x_real_d_logit, x_fake_d_logit)
 
-            #D_loss2 = L2_Loss(x_real_d_logit.std(),x_fake_d_logit.std())
-            D_loss2 = torch.tensor(0.0)
+            if args.GDstd:
+                D_loss2 = L2_Loss(x_real_d_logit.std(),x_fake_d_logit.std())
+            else:
+                D_loss2 = torch.tensor(0.0)
+
 
             gp = torch.tensor(0.0)
             #gp = g_penal.gradient_penalty(functools.partial(D), x_real, x_fake.detach(), gp_mode=args.gradient_penalty_mode, sample_mode=args.gradient_penalty_sample_mode)
@@ -167,8 +172,10 @@ if __name__ == '__main__':
 #-----------training G-----------
             x_fake_d_logit_2 = D(x_fake)
 
-            #G_loss2 =  L2_Loss(x_fake.std(),x_real.std())
-            G_loss2 = torch.tensor(0.0)
+            if args.GDstd:
+                G_loss2 =  L2_Loss(x_fake.std(),x_real.std())
+            else:
+                G_loss2 = torch.tensor(0.0)
 
             G_loss = g_loss_fn(x_fake_d_logit_2) + G_loss2#渐进式loss
             G_optimizer.zero_grad()
@@ -200,7 +207,7 @@ if __name__ == '__main__':
                         x_sample = sample(z)
                     else:
                         x_sample = x_fake
-                    torchvision.utils.save_image(x_sample*0.5+0.5,sample_dir+'/ep%d_it%d.jpg'%(ep,it_g), nrow=int(np.sqrt(args.batch_size)))
+                    torchvision.utils.save_image(x_sample,sample_dir+'/ep%d_it%d.jpg'%(ep,it_g), nrow=int(np.sqrt(args.batch_size)))
                     with open(output_dir+'/loss.txt','a+') as f:
                         print('ep_%d_iter_%d'%(ep,it_g),file=f)
                         print('G_loss:'+str(G_loss.item())+'------'+'D_loss'+str(D_loss.item()),file=f)
