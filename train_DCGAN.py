@@ -35,8 +35,8 @@ parser.add_argument('--img_channels', type=int, default=3)# RGB:3 ,L:1
 parser.add_argument('--dataname', default='Celeba_HQ') #choices=['mnist','cifar10', 'STL10',  'celeba','Celeba_HQ'] and so on.
 parser.add_argument('--datapath', default='./dataset/CelebA-HQ-img/') 
 parser.add_argument('--data_flag', type=bool, default=False) # True: STL10, False: Celeba_HQ
-parser.add_argument('--z_dim', type=int, default=128) # input to G
-parser.add_argument('--z_out_dim', type=int, default=1) # output from D
+parser.add_argument('--z_dim', type=int, default=256) # input to G
+parser.add_argument('--z_out_dim', type=int, default=256) # output from D
 parser.add_argument('--Gscale', type=int, default=8) # scale：网络隐藏层维度数,默认为 image_size//8 * image_size 
 parser.add_argument('--Dscale', type=int, default=1) 
 parser.add_argument('--BN', type=bool, default=False) 
@@ -50,7 +50,7 @@ args = parser.parse_args()
 
 # output_dir
 if args.experiment_name == None:
-    args.experiment_name = '%s-Gscale%d-Dscale%d-Zdim%d-ZoutDim%d-Hidden_Scale%d-img_size%d-batch_size%d-BN%s'%(args.dataname,args.Gscale,args.Dscale,args.z_dim,args.z_out_dim,args.hidden_scale,args.img_size,args.batch_size,args.BN)
+    args.experiment_name = 'ep100-%s-Gscale%d-Dscale%d-Zdim%d-ZoutDim%d-Hidden_Scale%d-img_size%d-batch_size%d-BN%s-G-LRelu-Nox05Insample-STD'%(args.dataname,args.Gscale,args.Dscale,args.z_dim,args.z_out_dim,args.hidden_scale,args.img_size,args.batch_size,args.BN)
 
 if not os.path.exists('output'):
     os.mkdir('output')
@@ -142,7 +142,7 @@ if __name__ == '__main__':
             seed_flag = seed_flag + 1
 
 #--------training D-----------
-            x_fake = G(z)*0.5+0.5 #G(z)[8]
+            x_fake = G(z) #G(z)[8]
             x_real_d_logit = D(x_real) # D(x_real)[0]
             x_fake_d_logit = D(x_fake.detach())
 
@@ -162,8 +162,7 @@ if __name__ == '__main__':
             D_loss.backward(retain_graph=True)
             D_optimizer.step()
 
-            D_loss_dict={'d_loss': x_real_d_loss.item() + x_fake_d_loss.item(), 'gp': gp.item(), //
-            'd_loss_real': x_real_d_loss.item(), 'd_loss_fake': x_fake_d_loss.item(),  'd_loss_2': D_loss2.item(),}
+            D_loss_dict={'d_loss': x_real_d_loss.item() + x_fake_d_loss.item(), 'gp': gp.item(), 'd_loss_real': x_real_d_loss.item(), 'd_loss_fake': x_fake_d_loss.item(),  'd_loss_2': D_loss2.item(),}
 
             it_d += 1
             for k, v in D_loss_dict.items():
@@ -211,6 +210,7 @@ if __name__ == '__main__':
                     with open(output_dir+'/loss.txt','a+') as f:
                         print('ep_%d_iter_%d'%(ep,it_g),file=f)
                         print('G_loss:'+str(G_loss.item())+'------'+'D_loss'+str(D_loss.item()),file=f)
+                        print('G_loss2:'+str(G_loss2.item())+'------'+'D_loss2'+str(D_loss2.item()),file=f)
 
         # save checkpoint
         if (ep+1)%10==0:   
