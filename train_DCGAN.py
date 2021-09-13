@@ -51,7 +51,7 @@ args = parser.parse_args()
 
 # output_dir
 if args.experiment_name == None:
-    args.experiment_name = 'ep100-%s-Gscale%d-Dscale%d-Zdim%d-ZoutDim%d-Hidden_Scale%d-img_size%d-batch_size%d-BN%s-G-LRelu-Nox05Insample-STD'%(args.dataname,args.Gscale,args.Dscale,args.z_dim,args.z_out_dim,args.hidden_scale,args.img_size,args.batch_size,args.BN)
+    args.experiment_name = 'ep100-%s-Gscale%d-GDscale%d-Dscale%d-Zdim%d-ZoutDim%d-Hidden_Scale%d-img_size%d-batch_size%d-BN%s-GDstd%s-Grelu%s'%(args.dataname,args.Gscale,argsGDscale,args.Dscale,args.z_dim,args.z_out_dim,args.hidden_scale,args.img_size,args.batch_size,args.BN,args.GDstd,args.Grelu)
 
 if not os.path.exists('output'):
     os.mkdir('output')

@@ -66,7 +66,7 @@ class D(nn.Module): # Discriminator with SpectrualNorm
         super().__init__()
         layers=[]
         up_times = math.log(image_size,2)- 3
-        first_hidden_dim = image_size * Gscale // (2**int(up_times) * Dscale4G) # 默认为input_dim 
+        first_hidden_dim = image_size * GDscale // (2**int(up_times) * Dscale4G) # 默认为input_dim 
         bias_flag = False
 
         # 1:
