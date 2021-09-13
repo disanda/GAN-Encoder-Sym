@@ -62,7 +62,7 @@ class G(nn.Module): #Generator
         return x
 
 class D(nn.Module): # Discriminator with SpectrualNorm
-    def __init__(self, output_dim=128, input_dim=3, image_size=128, Gscale=16, Dscale4G=1, hidden_scale = 2): #新版的Dscale4G是相对G缩小的倍数
+    def __init__(self, output_dim=128, input_dim=3, image_size=128, GDscale=16, Dscale4G=1, hidden_scale = 2): #新版的GDscale是D中G的倍数(默认和Gscale一样)，Dscale4G是相对G缩小的倍数
         super().__init__()
         layers=[]
         up_times = math.log(image_size,2)- 3

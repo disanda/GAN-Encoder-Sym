@@ -38,6 +38,7 @@ parser.add_argument('--data_flag', type=bool, default=False) # True: STL10, Fals
 parser.add_argument('--z_dim', type=int, default=256) # input to G
 parser.add_argument('--z_out_dim', type=int, default=256) # output from D
 parser.add_argument('--Gscale', type=int, default=8) # scale：网络隐藏层维度数,默认为 image_size//8 * image_size 
+parser.add_argument('--GDscale', type=int, default=8) 
 parser.add_argument('--Dscale', type=int, default=1) 
 parser.add_argument('--BN', type=bool, default=False) 
 parser.add_argument('--hidden_scale', type=int, default=2)
@@ -86,7 +87,7 @@ print('data-size:    '+str(shape))
 # ==============================================================================
 
 G = net.G(input_dim=args.z_dim, output_dim=args.img_channels, image_size=args.img_size, Gscale=args.Gscale, hidden_scale=args.hidden_scale, BN = args.BN, relu = args.Grelu ).to(device)
-D = net.D(output_dim=args.z_out_dim, input_dim=args.img_channels, image_size=args.img_size, Gscale=args.Gscale, Dscale4G=args.Dscale, hidden_scale=args.hidden_scale  ).to(device)
+D = net.D(output_dim=args.z_out_dim, input_dim=args.img_channels, image_size=args.img_size, Gscale=args.GDscale, Dscale4G=args.Dscale, hidden_scale=args.hidden_scale).to(device)
 summary(G,(args.z_dim, 1, 1))
 summary(D,(args.img_channels, args.img_size, args.img_size))
 x,y = net.get_parameter_number(G),net.get_parameter_number(D)
