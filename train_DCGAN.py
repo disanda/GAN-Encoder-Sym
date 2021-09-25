@@ -51,7 +51,7 @@ args = parser.parse_args()
 
 # output_dir
 if args.experiment_name == None:
-    args.experiment_name = 'ep100-%s-Gscale%d-GDscale%d-Dscale%d-Zdim%d-ZoutDim%d-Hidden_Scale%d-img_size%d-batch_size%d-BN%s-GDstd%s-Grelu%s'%(args.dataname,args.Gscale,argsGDscale,args.Dscale,args.z_dim,args.z_out_dim,args.hidden_scale,args.img_size,args.batch_size,args.BN,args.GDstd,args.Grelu)
+    args.experiment_name = 'ep100-%s-Gscale%d-GDscale%d-Dscale%d-Zdim%d-ZoutDim%d-Hidden_Scale%d-img_size%d-batch_size%d-BN%s-GDstd%s-Grelu%s'%(args.dataname,args.Gscale,args.GDscale,args.Dscale,args.z_dim,args.z_out_dim,args.hidden_scale,args.img_size,args.batch_size,args.BN,args.GDstd,args.Grelu)
 
 if not os.path.exists('output'):
     os.mkdir('output')
@@ -87,7 +87,7 @@ print('data-size:    '+str(shape))
 # ==============================================================================
 
 G = net.G(input_dim=args.z_dim, output_dim=args.img_channels, image_size=args.img_size, Gscale=args.Gscale, hidden_scale=args.hidden_scale, BN = args.BN, relu = args.Grelu ).to(device)
-D = net.D(output_dim=args.z_out_dim, input_dim=args.img_channels, image_size=args.img_size, Gscale=args.GDscale, Dscale4G=args.Dscale, hidden_scale=args.hidden_scale).to(device)
+D = net.D(output_dim=args.z_out_dim, input_dim=args.img_channels, image_size=args.img_size, GDscale=args.GDscale, Dscale4G=args.Dscale, hidden_scale=args.hidden_scale).to(device)
 summary(G,(args.z_dim, 1, 1))
 summary(D,(args.img_channels, args.img_size, args.img_size))
 x,y = net.get_parameter_number(G),net.get_parameter_number(D)
