@@ -7,3 +7,4 @@ def set_seed(seed): #随机数设置
     torch.manual_seed(seed) # cpu
     torch.cuda.manual_seed_all(seed)  # gpu
     torch.backends.cudnn.deterministic = True
+

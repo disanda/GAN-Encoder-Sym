@@ -10,8 +10,8 @@ from torch.autograd import Variable
 #----------------Parm-----------------------
 using_Dw = True
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu") #device = 'cuda'
-G_Path = './pre-model/GAN_GEN_SHADOW_8.pth'
-D_Path = './pre-model/GAN_DIS_8.pth'
+G_Path = './checkpoints/GAN_G.pth' # GAN_GEN_SHADOW_8.pth
+D_Path = './checkpoints/GAN_D.pth' # GAN_DIS_8.pth
 E_Path = None
 batch_size = 4
 
@@ -40,7 +40,7 @@ netG.load_state_dict(torch.load(G_Path,map_location=device)) #shadow的效果要
 netE = torch.nn.DataParallel(Encoder.encoder(height=9, feature_size=512))
 #netE.load_state_dict(torch.load(E_Path,map_location=device))
 
-#--------------Using D's weight
+#--------------Reusing pre-trained D's weight---------
 if using_Dw:
 	netD = torch.nn.DataParallel(net.Discriminator(height=9, feature_size=512)) # in: [-1,3,1024,1024],out:[]
 	netD.load_state_dict(torch.load(D_Path,map_location=device))

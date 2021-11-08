@@ -61,13 +61,14 @@ class G(nn.Module): #Generator
         x = self.net(z)
         return x
 
-class D(nn.Module): # Discriminator with SpectrualNorm
-    def __init__(self, output_dim=128, input_dim=3, image_size=128, GDscale=16, Dscale4G=1, hidden_scale = 2): #新版的GDscale是D中G的倍数(默认和Gscale一样)，Dscale4G是相对G缩小的倍数
+class D(nn.Module): # Discriminator with SpectrualNorm, GDscale网络的参数规模，Dscale4G网络的缩小倍数
+    def __init__(self, output_dim=128, input_dim=3, image_size=128, GDscale=16, Dscale4G=1, hidden_scale = 2): #新版的GDscale是D中G的倍数(G输入首层特征即D最后输出的隐藏特征,默认和Gscale一样)，Dscale4G是相对G缩小的倍数
         super().__init__()
         layers=[]
         up_times = math.log(image_size,2)- 3
-        first_hidden_dim = image_size * GDscale // (2**int(up_times) * Dscale4G) # 默认为input_dim 
+        first_hidden_dim = image_size * GDscale // (2**int(up_times) * Dscale4G) # 默认为input_dim , Dscale4G是D相对G缩小的倍数
         bias_flag = False
+
 
         # 1:
         layers.append(spectral_norm(nn.Conv2d(input_dim, first_hidden_dim, kernel_size=4, stride=2, padding=1, bias=bias_flag)))

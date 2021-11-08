@@ -24,7 +24,7 @@ parser = argparse.ArgumentParser(description='the training args')
 parser.add_argument('--epochs', type=int, default=100)
 parser.add_argument('--lr', type=float, default=0.0015) # 0.0015 or 0.0002
 parser.add_argument('--beta_1', type=float, default=0.5)
-parser.add_argument('--batch_size', type=int, default=30) #STL:100
+parser.add_argument('--batch_size', type=int, default=30) # STL:100
 parser.add_argument('--adversarial_loss_mode', default='gan', choices=['gan', 'hinge_v1', 'hinge_v2', 'lsgan', 'wgan'])
 parser.add_argument('--gradient_penalty_mode', default='none', choices=['none', '1-gp', '0-gp', 'lp'])
 parser.add_argument('--gradient_penalty_sample_mode', default='line', choices=['line', 'real', 'fake', 'dragan'])
@@ -32,18 +32,18 @@ parser.add_argument('--gradient_penalty_weight', type=float, default=10.0)
 parser.add_argument('--experiment_name', default=None)
 parser.add_argument('--img_size',type=int, default=256) # STL:128, CelebA-HQ: 256
 parser.add_argument('--img_channels', type=int, default=3)# RGB:3 ,L:1
-parser.add_argument('--dataname', default='Celeba_HQ') #choices=['mnist','cifar10', 'STL10',  'celeba','Celeba_HQ'] and so on.
+parser.add_argument('--dataname', default='Celeba_HQ') #choices=['mnist','fashion_mnist','cifar10', 'STL10',  'celeba','Celeba_HQ'] and so on.
 parser.add_argument('--datapath', default='./dataset/CelebA-HQ-img/') 
 parser.add_argument('--data_flag', type=bool, default=False) # True: STL10, False: Celeba_HQ
-parser.add_argument('--z_dim', type=int, default=256) # input to G
-parser.add_argument('--z_out_dim', type=int, default=256) # output from D
-parser.add_argument('--Gscale', type=int, default=8) # scale：网络隐藏层维度数,默认为 image_size//8 * image_size 
-parser.add_argument('--GDscale', type=int, default=8) 
-parser.add_argument('--Dscale', type=int, default=1) 
-parser.add_argument('--BN', type=bool, default=False) 
+parser.add_argument('--z_dim', type=int, default=128) # input to G
+parser.add_argument('--z_out_dim', type=int, default=1) # output from D
+parser.add_argument('--Gscale', type=int, default=8) # G parameter size, scale：网络隐藏层维度数,默认为 image_size//8 * image_size 
+parser.add_argument('--GDscale', type=int, default=8) # D parameter size (ratio with G),Gscale的规模(在D中默认和Gscale相同)
+parser.add_argument('--Dscale', type=int, default=1) # Dscale相对Gscale缩小的倍数
+parser.add_argument('--BN', type=bool, default=False) # default is SN
 parser.add_argument('--hidden_scale', type=int, default=2)
 parser.add_argument('--GDstd', type=bool, default=False) # GD的训练损失加std()约束
-parser.add_argument('--Grelu', type=bool, default=False) # 默认是Leaky-Relu
+parser.add_argument('--Grelu', type=bool, default=True) # 默认False是Leaky-Relu
 args = parser.parse_args()
 
 #Fashion_mnist:  img_size=32, z_dim=32, Gscale=8
@@ -125,13 +125,11 @@ if __name__ == '__main__':
     # main loop
     writer = tensorboardX.SummaryWriter(os.path.join(output_dir, 'summaries'))
 
-    seed_flag = 0
-
     G.train()
     D.train()
     L2_Loss = torch.nn.MSELoss()
     for ep in tqdm.trange(args.epochs, desc='Epoch Loop'):
-        it_d, it_g = 0, 0
+        it_d, it_g, seed_flag = 0 , 0, 0
         for x_real in tqdm.tqdm(data_loader, desc='Inner Epoch Loop'):
             if args.data_flag == True: # 'mnist' or 'fashion_mnist':
                 x_real = x_real[0].to(device) # x_real[1] is flag
@@ -144,7 +142,7 @@ if __name__ == '__main__':
 
 #--------training D-----------
             x_fake = G(z) #G(z)[8]
-            x_real_d_logit = D(x_real) # D(x_real)[0]
+            x_real_d_logit = D(x_real) # D(x_real)[0] In:[-1,1]
             x_fake_d_logit = D(x_fake.detach())
 
             x_real_d_loss, x_fake_d_loss = d_loss_fn(x_real_d_logit, x_fake_d_logit)
@@ -198,8 +196,6 @@ if __name__ == '__main__':
             # for k, v in D2E_loss_dict.items():
             #     writer.add_scalar('G/%s' % k, v, global_step=it_d+ep*len(data_loader))
 
-
-
 #--------------save---------------
             if it_g%100==0:
                 with torch.no_grad():
@@ -207,7 +203,7 @@ if __name__ == '__main__':
                         x_sample = sample(z)
                     else:
                         x_sample = x_fake
-                    torchvision.utils.save_image(x_sample,sample_dir+'/ep%d_it%d.jpg'%(ep,it_g), nrow=int(np.sqrt(args.batch_size)))
+                    torchvision.utils.save_image(x_sample*0.5+0.5,sample_dir+'/ep%d_it%d.jpg'%(ep,it_g), nrow=int(np.sqrt(args.batch_size)))
                     with open(output_dir+'/loss.txt','a+') as f:
                         print('ep_%d_iter_%d'%(ep,it_g),file=f)
                         print('G_loss:'+str(G_loss.item())+'------'+'D_loss'+str(D_loss.item()),file=f)
