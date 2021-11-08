@@ -37,13 +37,17 @@ Tips: please refer to the below parameters to implement our ablation study (chan
 >ep100-Celeba_HQ-Gscale8-GDscale8-Dscale1-Zdim128-ZoutDim16-Hidden_Scale2-img_size256-batch_size30-BNFalse-GDstdFalse-GreluTrue
 
 
-### 2. Training PGGAN 
+### 2. Training pre-trained PGGAN (D to E)
 
 > python train_PGGAN.py
 
-Tips: In this case, we can resue the weights of pre-trained D, and transform D to E.
+- Tips: 
 
-We also implement other type of PGGAN-FC in train_PGGAN_FC.py.
+> In this case, we can resue the weights of pre-trained D, and transform D to E.
+
+> before training, please download pre-trained models (D and G) to ./checkpoint 
+
+> We also implement other type of PGGAN-FC in train_PGGAN_FC.py.
 
 
 ## Metric and  Pre-trained Models 
@@ -71,6 +75,6 @@ We also implement other type of PGGAN-FC in train_PGGAN_FC.py.
 
 ##  Baseline (Acknowledgements)
 
-> PGGAN in Pytorch: https://github.com/akanimax/pro_gan_pytorch
-> PGGAN_FC: https://github.com/genforce/genforce.git
-> DCGAN: https://github.com/LynnHo/DCGAN-LSGAN-WGAN-GP-DRAGAN-Pytorch
+- PGGAN in Pytorch: https://github.com/akanimax/pro_gan_pytorch
+- PGGAN_FC: https://github.com/genforce/genforce.git
+- DCGAN: https://github.com/LynnHo/DCGAN-LSGAN-WGAN-GP-DRAGAN-Pytorch
