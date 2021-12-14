@@ -13,7 +13,7 @@
 
 ###  1. Training DCGAN 
 
-> python E_align.py
+> python train_DCGAN.py
 
 Tips: please refer to the below parameters to implement our ablation study (change ZoutDim 1 to 128 that equal with Zdim, and Zdim is G input dim).
 
